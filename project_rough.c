@@ -180,25 +180,180 @@ void display_menu()
     // printf("%-20d%-30s%-10d\n", h.index, h.item, h.price);
     fclose(file);
 }
+void my_information(int n)
+{
+    FILE *fp = fopen("student_info.txt", "r");
+    struct student_info hp;
+    printf("%d", n);
+    while (fscanf(fp, "%d %s %s %d %s", &hp.id, hp.name, hp.dept, &hp.wallet, hp.pass))
+    {
+        if (fgetc(fp) == EOF)
+            break;
+        if (n == hp.id)
+        {
+            printf("...............your info is..............\n");
+            printf("%-10s%-20s%-10s%-20s%-30s\n", "ID", "NAME", "DEPT", "WALLET", "PASSWORD");
+            printf("%-10d%-20s%-10s%-20d%-30s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
+            printf("\n");
+        }
+    }
+}
+void add_money(int user_id)
+{
+    int carry;
+    struct student_info h;
+    FILE *file, *temp;
+    file = fopen("student_info.txt", "r");
+    temp = fopen("temp.txt", "w");
+    while (fscanf(file, "%d %s %s %d %s", &h.id, h.name, h.dept, &h.wallet, h.pass))
+    {
+        if (fgetc(file) == EOF)
+            break;
+        if (h.id == user_id)
+        {
+            printf("\nEnter amount to add:\n");
+            scanf("%d", &carry);
+            h.wallet = h.wallet + carry;
+        }
+        fprintf(temp, "%d %s %s %d %s\n", h.id, h.name, h.dept, h.wallet, h.pass);
+    }
+    fclose(file);
+    fclose(temp);
+}
+void change_file()
+{
+    struct student_info hp1;
+    FILE *fp_again = fopen("student_info.txt", "w");
+    FILE *fp_temp = fopen("temp.txt", "r");
+    while (fscanf(fp_temp, "%d %s %s %d %s", &hp1.id, hp1.name, hp1.dept, &hp1.wallet, hp1.pass))
+    {
+        if (fgetc(fp_temp) == EOF)
+            break;
+        fprintf(fp_again, "%d %s %s %d %s\n", hp1.id, hp1.name, hp1.dept, hp1.wallet, hp1.pass);
+    }
+    fclose(fp_again);
+    fclose(fp_temp);
+}
+int buy_items(int n, int index) // for user only
+{
+    int check_buy_index = 0, check_id = 0, can_buy = 0; // to check user inputs index are in file or not
+    struct menu_info m;
+    struct student_info hp;
+    FILE *fp_menu = fopen("menu.txt", "r");
+    FILE *fp = fopen("student_info.txt", "r");
+    while (fscanf(fp, "%d %s %s %d %s", &hp.id, hp.name, hp.dept, &hp.wallet, hp.pass))
+    {
+        if (fgetc(fp) == EOF)
+            break;
+        if (hp.id == n)
+        {
+            check_id = 1;
+            break;
+        }
+    }
+    // int buy_index;
+    while (fscanf(fp_menu, "%d %s %d", &m.index, m.item, &m.price))
+    {
+        if (fgetc(fp_menu) == EOF)
+            break;
+        if (index == m.index)
+        {
+            check_buy_index = 1;
+            if (hp.wallet >= m.price)
+            {
+                can_buy = 1;
+                printf("you are able to buy this.\n");
+            }
+            else
+            {
+                printf("you dont have enough money to buy it\n\nyou are returning again in home page\nplease log in again\n");
+                for (int delay = 0; delay < 5; delay++)
+                {
+                    sleep(1);
+                    printf("...");
+                }
+            }
+        }
+    }
+    if ((check_buy_index != 1) || (check_id != 1))
+    {
+        printf("you have enter wrong index\n");
+    }
+    if (can_buy == 1)
+    {
+        return 1;
+    }
+    else
+        return 0;
+}
+void remaining_money_of_user(int user_id, int item_index)
+{
+    struct student_info h;
+    struct menu_info m;
+    FILE *fp = fopen("student_info.txt", "r");
+    FILE *fp_menu = fopen("menu.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    while (fscanf(fp, "%d %s %s %d %s", &h.id, h.name, h.dept, &h.wallet, h.pass))
+    {
+        if (fgetc(fp) == EOF)
+            break;
+        if (user_id == h.id)
+        {
+            while (fscanf(fp_menu, "%d %s %d", &m.index, m.item, &m.price))
+            {
+                if (fgetc(fp_menu) == EOF)
+                    break;
+                if (item_index == m.index)
+                {
+                    h.wallet = h.wallet - m.price;
+                    printf("you have now %d tk\n", h.wallet);
+                }
+            }
+            fprintf(temp, "%d %s %s %d %s\n", h.id, h.name, h.dept, h.wallet, h.pass);
+        }
+        else
+            fprintf(temp, "%d %s %s %d %s\n", h.id, h.name, h.dept, h.wallet, h.pass);
+    }
+    // fprintf(temp, "%d %s %s %d %s\n", h.id, h.name, h.dept, h.wallet, h.pass);
+    fclose(fp);
+    fclose(temp);
+    fclose(fp_menu);
+}
+void change_file_add_money(int user_id)
+{
+    struct student_info hp1;
+    FILE *fp_again = fopen("student_info.txt", "w");
+    FILE *fp_temp = fopen("temp_edit_s.txt.txt", "r");
+    while (fscanf(fp_temp, "%d %s %s %d %s", &hp1.id, hp1.name, hp1.dept, &hp1.wallet, hp1.pass))
+    {
+        if (fgetc(fp_temp) == EOF)
+            break;
+        fprintf(fp_again, "%d %s %s %d %s\n", hp1.id, hp1.name, hp1.dept, hp1.wallet, hp1.pass);
+    }
+    fclose(fp_again);
+    fclose(fp_temp);
+}
 int main()
 {
-    int n, i, sml = 1, n_admin, n_user;
+    int n, i, sml = 1, n_admin, n_user, new_file_create = 0, new_add_money = 0;
     do
     {
 
     start:
         system("cls");
-        system("COLOR 61");
+        system("COLOR F0");
+    start_fromcredit:
         printf("############################ MESS MANAGEMENT ############################\n");
         printf("<><><><><><><><><><><><><><><><><><><><><><><><><>");
         printf("\n                         1.ADMIN                                       \n");
         printf("                         2.USER                                         \n");
+        printf("                         3.CREDITS(for this system)                                    \n");
         printf("                         0.EXIT                                          \n");
         printf("choose  your number:");
         scanf("%d", &n);
         if (n == 1)
         {
-            system("COLOR 65");
+            system("COLOR 52");
             char ch, pwd[30]; // printf("ok\n"); // admin panel
             // char admin_pass[30] = "admin"; // will do this by file reading
             printf("enter your administration password: ");
@@ -237,8 +392,8 @@ int main()
                 printf("7.Edit menu\n");
                 printf("8.Display menu\n");
                 printf("9.Change Admin password\n");
-               // printf("10.Add money to mess(Gift from alumni):\n");
-               // printf("11.Display mess totall money:\n");
+                // printf("10.Add money to mess(Gift from alumni):\n");
+                // printf("11.Display mess totall money:\n");
                 printf("0.Home\n");
                 printf("choose your choice: ");
                 scanf("%d", &n_admin);
@@ -260,7 +415,7 @@ int main()
                 case 2:
                 {
                     system("cls");
-                    system("COLOR A4");
+                    system("COLOR E4");
                     display_student_info();
                     printf("\nEnter the id you want to remove:\n");
                     scanf("%d", &n_edit);
@@ -272,7 +427,7 @@ int main()
                 case 3:
                 {
                     system("cls");
-                    system("COLOR A4");
+                    system("COLOR F0");
                     display_student_info();
                     printf("\nEnter the id you want to edit:\n");
                     scanf("%d", &n_edit);
@@ -292,7 +447,7 @@ int main()
                 case 5:
                 {
                     system("cls");
-                    system("COLOR A4");
+                    system("COLOR 90");
                     printf("\nHere is the previous menu\n");
                     display_menu();
                     printf("Enter new menu item\n");
@@ -304,7 +459,7 @@ int main()
                 case 6:
                 {
                     system("cls");
-                    system("COLOR A4");
+                    system("COLOR B4");
                     display_menu();
                     printf("Enter which element you want to remove:\n");
                     scanf("%d", &n_edit);
@@ -316,7 +471,7 @@ int main()
                 case 7:
                 {
                     system("cls");
-                    system("COLOR A4");
+                    system("COLOR 74");
                     display_menu();
                     printf("Enter which element you want to edit:\n");
                     scanf("%d", &n_edit);
@@ -347,19 +502,19 @@ int main()
                         i++;
                         printf("*");
                     }
-                    old_pass[i]='\0';
+                    old_pass[i] = '\0';
                     fclose(fp_oldpass);
                     if (strcmp(old_pass, saved_pass) == 0)
                     {
                         printf("\nenter your new pass:(don't use space use underscore)\n");
-                        i=0;
+                        i = 0;
                         while ((ch = _getch()) != 13) // as ch introduced in this block i can use it here
                         {
                             new_pass[i] = ch;
                             i++;
                             printf("*");
                         }
-                        new_pass[i]='\0';
+                        new_pass[i] = '\0';
                         FILE *fp_newpass = fopen("password.txt", "w");
                         fprintf(fp_newpass, "%s", new_pass);
                         fclose(fp_newpass);
@@ -421,11 +576,11 @@ int main()
 
         user_log_in:
             struct student_info hp;
-            int user_id, check = 0, check_id = 0;
+            int user_id, check_pass = 0, check_id = 0;
             char user_pass[50];
             printf("\nyour user ID(Enter 0 to go home):");
             FILE *fp_user = fopen("student_info.txt", "r");
-            FILE *temp = fopen("temp1.txt", "w");
+
             scanf("%d", &user_id);
             if (user_id == 0)
                 goto start;
@@ -439,7 +594,7 @@ int main()
                 printf("*");
             }
             user_pass[i_pass] = '\0';
-            printf("\n%s",user_pass);  //for debugging perpose;
+            // printf("\n%s", user_pass); // for debugging perpose;
             printf("\nloading\n");
             for (int ji = 0; ji < 2; ji++)
             {
@@ -456,115 +611,149 @@ int main()
                     check_id = 1;
                     if (strcmp(user_pass, hp.pass) == 0)
                     {
+
+                        check_pass = 1;
                         system("cls");
-                        system("COLOR A1");
-                        check = 1;
-                        printf("\n***********Successfully log in***********\n");
+                        system("COLOR 20");
+                        printf("***************Succesfully log in***********\n");
+                    after_login:
+                        printf("1.My information\n2.View Menu\n3.Buy items\n4.Add money\n0.Home\n");
+                        printf("Enter your choice:\n");
                         int view_user;
-                    after_user_log_in:
-                        printf("1.My information\n");
-                        printf("2.Buy items\n");
-                        printf("0.Home_page\n");
-                        printf("Enter your choice:");
                         scanf("%d", &view_user);
-                        if (view_user == 0)
+                        switch (view_user)
                         {
-                            // fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                            goto start;
+                        case 1:
+                        {
+                            new_add_money = 0;
+                            new_file_create = 0;
+                            system("cls");
+                            system("COLOR E1");
+                            my_information(user_id);
+                            goto after_login;
                         }
-                        else if (view_user == 1)
+                        break;
+                        case 2:
                         {
-                            // fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
+                            new_add_money = 0;
+                            new_file_create = 0;
                             system("cls");
                             system("COLOR 90");
-                            printf("...............your info is................\n");
-                            printf("%-10s%-20s%-10s%-20s%-30s\n", "ID", "NAME", "DEPT", "WALLET", "PASSWORD");
-                            printf("%-10d%-20s%-10s%-20d%-30s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                            printf("\n");
-                            goto after_user_log_in;
-                        }
-                        else if (view_user == 2)
-                        {
-                            system("cls");
-                            system("COLOR F4");
-                            int check_buy_index = 0; // to check user inputs index are in file or not
-                            struct menu_info m;
-                            FILE *fp_menu = fopen("menu.txt", "r");
-                            int buy_index;
                             display_menu();
-                            printf("select the index to buy\n");
+                            goto after_login;
+                        }
+                        break;
+                        case 3:
+                        {
+                            system("COLOR E0");
+                            new_add_money = 0;
+                            new_file_create = 0;
+                            display_menu();
+                            printf("which item you want to buy:\n");
+                            int buy_index;
                             scanf("%d", &buy_index);
-                            while (fscanf(fp_menu, "%d %s %d", &m.index, m.item, &m.price))
+                            int b = buy_items(user_id, buy_index); // to check user id and buy index are inputted corrected or not
+                            if (b == 1)                            // if return is 1 then goto file change
                             {
-                                if (fgetc(fp_menu) == EOF)
-                                    break;
-                                if (buy_index == m.index)
-                                {
-                                    check_buy_index = 1;
-                                    if (hp.wallet >= m.price)
-                                    {
-                                        // system("cls");
-                                        system("COLOR B2");
-                                        printf("\nyou have bought item %d.%s\n", m.index, m.item);
-                                        hp.wallet = (hp.wallet - m.price); // present money
-                                        printf("you have now %d taka\n\n", hp.wallet);
-                                        // hp.wallet = c;
-                                        printf("Thank you Please visit again\n");
-                                        fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                                        for (int ji = 0; ji < 4; ji++)
-                                        {
-                                            sleep(1);
-                                            printf("---");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                                        printf("\nyou dont have enough amount to buy it\n");
-                                        goto after_user_log_in;
-                                    }
-                                }
-                            }
-                            if (check_buy_index != 1)
-                            {
-                                fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                                printf("please enter right index\n");
-                                goto after_user_log_in;
+                                new_add_money = 0;
+                                new_file_create = 1; // do we need new file create or not
+                                remaining_money_of_user(user_id, buy_index);
+                                break;
                             }
                         }
-                        else
+                        break;
+                        case 4:
                         {
-                            fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
+                            new_file_create = 0;
+                            new_add_money = 1;
                             system("cls");
-                            system("COLOR F4");
-                            printf("Enter correct input:\n");
-                            goto after_user_log_in;
+                            system("COLOR 74");
+                            printf("\nyour current info is \n");
+                            my_information(user_id);
+                            /*add_money(user_id);
+                            printf("your edited info is");
+                            my_information(user_id);...
+                            printf("you are returning into homepage.\nplease wait.");
+                            for (int delay = 0; delay <= 15; delay++)
+                            {
+                                sleep(1);
+                                printf("...");
+                            }
+                            printf("\n");*/
+                            break;
+                        }
+                        break;
+                        case 0:
+                        {
+                            new_add_money = 0;
+                            new_file_create = 0;
+                            goto start;
+                        }
+                        break;
                         }
                     }
                     else
-                    {
-                        fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
-                        system("cls");
-                        system("COLOR 04");
-                        printf("\nwrong password.Enter correct password:\n");
-                        goto user_log_in;
-                    }
+                        new_file_create = 0;
                 }
-                else
-                    fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
             }
             fclose(fp_user);
-            fclose(temp);
-            remove("student_info.txt");
-            rename("temp1.txt", "student_info.txt");
-            if ((check != 1) || (check_id != 1))
+            if (new_file_create == 1)
             {
-                // fprintf(temp, "%d %s %s %d %s\n", hp.id, hp.name, hp.dept, hp.wallet, hp.pass);
+                change_file();
+                printf("here is your info\n");
+                my_information(user_id);
+                printf("you are returning into homepage.\nplease wait.");
+                for (int delay = 0; delay <= 7; delay++)
+                {
+                    sleep(1);
+                    printf("...");
+                }
+                printf("\n");
+            }
+            if (new_add_money == 1)
+            {
+                add_money(user_id);
+                change_file(user_id);
+                printf("your info is\n");
+                my_information(user_id);
+                printf("you are returning into homepage.\nplease wait.");
+                for (int delay = 0; delay <= 7; delay++)
+                {
+                    sleep(1);
+                    printf("...");
+                }
+                printf("\n");
+            }
+
+            if ((check_id != 1) || (check_pass != 1))
+            {
                 system("cls");
                 system("COLOR 04");
-                printf("\nEnter corrct id and password\n");
-                goto user_log_in;
+
+                printf("entered wrong id or pass\n");
+                printf("you are returning in home page");
+                for (int delay = 0; delay < 5; delay++)
+                {
+                    sleep(1);
+                    printf("...");
+                }
+                goto start;
             }
+            goto start;
+        }
+        else if (n == 3)
+        {
+            int nh;
+            system("cls");
+            system("COLOR 06");
+            printf("\n<><><><><><><><><><><><><><><><><><><><><><><><><<><><><>><><><><><><><><><><><><><><><><>\n");
+            printf("            DESIGNED by            *****************        SUPERVISED by\n");
+            printf("            Md.Enayet Ullah Alvee                           Syed Muhammad Ibn Zulfiker\n");
+            printf("            Student                                         Lecturer\n");
+            printf("            CSE,BUET                                        CSE,BUET\n");
+            printf("            ID:2105107                                      ID:1605110\n");
+            printf("\n\n\n");
+            goto start_fromcredit;
         }
 
         else if (n == 0)
@@ -578,7 +767,7 @@ int main()
         {
             system("cls");
             system("COLOR 03");
-            printf("you have entered wrong number.\n");
+            printf("you have entered wrong input.please select 1,2 or 0\n");
         }
     } while (n);
 }
